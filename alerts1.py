@@ -33,7 +33,7 @@ def getDomain(url):
 
 def getDomainPartsWithoutTld(domain):
     ext = tldextract.extract(domain)
-    suffix = ext.suffix
+    suffix = '.'+ext.suffix
     return domain[:domain.rindex(suffix)].split('.')
 
 def isIDN(domain):
@@ -42,7 +42,7 @@ def isIDN(domain):
  
 def isTopSite(domain):
     ext = tldextract.extract(domain)
-    suffix = ext.suffix
+    suffix = '.'+ext.suffix
     domainPartsWithoutTld=getDomainPartsWithoutTld(domain)
     etldPlusOne = domainPartsWithoutTld[len(domainPartsWithoutTld) - 1] + suffix
     
@@ -73,7 +73,7 @@ def redirectsThroughSuspiciousTld(redirectUrls):
     ]
     for url in redirectUrls:
         ext = tldextract.extract(domain)
-        tld = ext.suffix
+        suffix = '.'+ext.suffix
         if any(tld in s for s in suspiciousTlds):
             return True
     return False
