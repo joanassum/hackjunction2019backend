@@ -4,7 +4,6 @@ import datetime
 from urllib.parse import urlparse
 import asyncio
 import re
-from promise import Promise
 
 ALERT_MESSAGES = {
     'isIDN': 'Domain uses uncommon characters',
@@ -45,7 +44,7 @@ def isTopSite(domain):
     suffix = '.'+ext.suffix
     domainPartsWithoutTld=getDomainPartsWithoutTld(domain)
     etldPlusOne = domainPartsWithoutTld[len(domainPartsWithoutTld) - 1] + suffix
-    
+
     return etldPlusOne.lower() in topSitesList.keys()
         
     
@@ -73,7 +72,7 @@ def redirectsThroughSuspiciousTld(redirectUrls):
     ]
     for url in redirectUrls:
         ext = tldextract.extract(domain)
-        suffix = '.'+ext.suffix
+        tld = '.'+ext.suffix
         if any(tld in s for s in suspiciousTlds):
             return True
     return False
