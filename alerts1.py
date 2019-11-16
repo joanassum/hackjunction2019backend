@@ -6,16 +6,27 @@ import asyncio
 import re
 
 ALERT_MESSAGES = {
-    'isIDN': 'Domain uses uncommon characters',
-    'longSubdomains': 'Unusually long subdomains',
-    'notTopSite': 'Site not in top 5k sites',
-    'notVisitedBefore': 'Haven\'t visited site in the last 3 months',
-    'manySubdomains': 'Unusually many subdomains',
-    'redirectsThroughSuspiciousTld':
-        'Site redirected through a TLD potentially associated with abuse',
-    'redirectsFromOutsideProgramOrWebmail':
-        'Visit maybe initiated from outside program or webmail',
-    'urlShortenerRedirects': 'Has multiple redirects through URL shorteners',
+    'isIDN': {
+        "subject": "The domain is an <span class=\"ui icon\" data-tooltip=\"internationalized domain name\">IDN</span> or uses uncommon characters",
+        "textOne": "The internationalized domain name (IDN) homograph attack is a way a malicious party may deceive computer users about what remote system they are communicating with, by exploiting the fact that many different characters look alike"
+        },
+    'longSubdomains': {
+        "subject": "The URL has unusually long subdomains",
+        "textOne": "Having control over a subdomain of a targeted domain name can be used to setup up a phishing website or other fake content. "
+        },
+    'notTopSite': {
+        "subject": "The site is not in top 5k sites",
+        "textOne": "Are you sure you've typed the url correctly?"
+        },
+    'manySubdomains': {
+        "subject": "The URL has unusually many subdomains",
+        "textOne": "Having control over a subdomain of a targeted domain name can be used to setup up a phishing website or other fake content. "
+            
+        },
+    'noticann': {
+        "subject": "The <span class=\"ui icon\" data-tooltip=\"top-level domain\">TLD</span> is not valid",
+        "textOne": "Are you sure you've typed the url correctly?"
+        }
   }
 
 NUM_SUSPICIOUS_SUBDOMAINS = 4
@@ -44,17 +55,20 @@ def isTopSite(domain):
     suffix = '.'+ext.suffix
     domainPartsWithoutTld=getDomainPartsWithoutTld(domain)
     etldPlusOne = domainPartsWithoutTld[len(domainPartsWithoutTld) - 1] + suffix
-
+    
     return etldPlusOne.lower() in topSitesList.keys()
         
     
-
-# def visitedBeforeToday(domain):
-#     currentTime = datetime.datetime.now()
-#     timeYesterday = datetime.timedelta(days=-1)
-#     DD = datetime.timedelta(days=-90)
-#     timeThreeMonthsAgo = currentTime - DD
-
+def isiCann(domain):
+    ext = tldextract.extract(domain)
+    suffix = ext.suffix
+    infile = open('icann.txt', 'r')
+    count=0
+    while True:
+        line = infile.readline()
+        if not line: break
+        return line.lower().find(suffix)==-1
+            
 def hasManySubdomains(domain):
     domainPartsWithoutTld = getDomainPartsWithoutTld(domain)
     return len(domainPartsWithoutTld) >= NUM_SUSPICIOUS_SUBDOMAINS
@@ -63,19 +77,19 @@ def hasLongSubdomains(domain):
     domainPartsWithoutTld = getDomainPartsWithoutTld(domain)
     return any(len(subdomain) >= SUSPICIOUS_SUBDOMAIN_LENGTH for subdomain in domainPartsWithoutTld)
 
-def redirectsThroughSuspiciousTld(redirectUrls):
-    suspiciousTlds = [
-      '.accountant', '.bid',    '.click',  '.cricket', '.date',  '.download',
-      '.faith',      '.gdn',    '.kim',    '.loan',    '.men',   '.party',
-      '.pro',        '.racing', '.review', '.science', '.space', '.stream',
-      '.top',        '.trade',  '.win',    '.work',    '.xyz',
-    ]
-    for url in redirectUrls:
-        ext = tldextract.extract(domain)
-        tld = '.'+ext.suffix
-        if any(tld in s for s in suspiciousTlds):
-            return True
-    return False
+# def redirectsThroughSuspiciousTld(redirectUrls):
+#     suspiciousTlds = [
+#       '.accountant', '.bid',    '.click',  '.cricket', '.date',  '.download',
+#       '.faith',      '.gdn',    '.kim',    '.loan',    '.men',   '.party',
+#       '.pro',        '.racing', '.review', '.science', '.space', '.stream',
+#       '.top',        '.trade',  '.win',    '.work',    '.xyz',
+#     ]
+#     for url in redirectUrls:
+#         ext = tldextract.extract(domain)
+#         suffix = '.'+ext.suffix
+#         if any(tld in s for s in suspiciousTlds):
+#             return True
+#     return False
 
 def computeAlerts(url):
     newAlerts = []
@@ -90,7 +104,8 @@ def computeAlerts(url):
         newAlerts.append(ALERT_MESSAGES['manySubdomains'])
     if (hasLongSubdomains(domain)):
         newAlerts.append(ALERT_MESSAGES['longSubdomains'])
-
+    if not (isiCann(domain)):
+        newAlerts.append(ALERT_MESSAGES['noticann'])
     return newAlerts
 
-print(computeAlerts('https://www.secure.runescape.com-v.cz/'))
+#print(computeAlerts('https://www.secure.runescape.com'))

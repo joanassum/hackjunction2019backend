@@ -1,6 +1,6 @@
 import re
 import json
-import alerts1
+#import alerts1
 from parse import Parser
 from phish_categorizer import PhishCategorizer
 
@@ -84,7 +84,7 @@ def get_issues(url):
     grammar = res > 20
     
     
-    data = {"isPhishing":alerts1.computeAlerts(url) != [],
+    data = {"isPhishing":True,
             "issues": []}
     if len(url_ip) > 0:
         data["issues"].append(url_ip)
@@ -140,6 +140,6 @@ def get_issues(url):
     data["issues"].append({'subject': "That's it for this website.",
                                'text': "You'll be redirected to where you were before. Try to remember what you've learned!"})
     
-    return json.dumps(data)
+    return data
 
 
